@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <title>OONG GEE-MAPS</title>
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+  <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+    crossorigin=""></script>
+
+
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+
+    #map {
+      width: 600px;
+      height: 400px;
+    }
+  </style>
+
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+    }
+
+    #map {
+      height: 100%;
+      width: 100vw;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id='map'></div>
+
+  <script>
+    var map = L.map('map').fitWorld();
+
+    L.tileLayer('https://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png', {
+      maxZoom: 20,
+    })
+      .addTo(map);
+
+    var json_point = [
+      {
+        name: 'โรงพยาบาลมหาวิทยาลัยนเรศวร',
+        lat: 16.7489044,
+        lon: 100.1891314
+        
+      }, {
+        name: 'โรงพยาบาลพิษณุเวช',
+        lat: 16.8089236,
+        lon: 100.2601161
+      }
+
+    ]
+
+
+    function onLocationFound(e) {
+      console.log(e);
+
+      L.marker(e.latlng).addTo(map)
+
+      var center = [e.latlng.lng, e.latlng.lat];
+      var radius = 5;
+      var options = { steps: 90, units: 'kilometers', properties: { foo: 'bar' } };
+      var circle = turf.circle(center, radius, options);
+      var circle_ = L.geoJson(circle).addTo(map)
+
+      var hospital_icon = L.icon({
+        iconUrl: 'https://image.flaticon.com/icons/png/512/196/196144.png',
+        iconSize: [35, 35],
+      });
+      json_point.forEach(f => {
+
+        var from = turf.point([f.lon, f.lat]);
+        var to = turf.point([e.latlng.lng, e.latlng.lat]);
+        var distance = turf.distance(from, to);
+
+        L.marker([f.lat, f.lon], { icon: hospital_icon })
+          .bindPopup(' ชื่อโรงพยาบาล : ' + f.name + ' <br> ระยะทาง : ' + distance.toFixed(2) + ' กิโลเมตร <br><a target="_blank" href="https://www.google.co.th/maps/dir/' + e.latlng.lat + ',' + e.latlng.lng + '/' + f.lat + ',' + f.lon + '/"> นำทาง </a>')
+          .addTo(map)
+      });
+    }
+
+    function onLocationError(e) {
+      alert(e.message);
+    }
+
+    map.on('locationfound', onLocationFound);
+    map.on('locationerror', onLocationError);
+
+    map.locate({ setView: true, maxZoom: 10 });
+  </script>
+
+
+
+</body>
+
+</html>
